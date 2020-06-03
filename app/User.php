@@ -107,4 +107,8 @@ class User extends Authenticatable implements JWTSubject //, MustVerifyEmail
     }
 
     public $timestamps = false;
+
+    public function toDoItems() {
+        return $this->hasMany('App\ToDoItem', 'owner_id', 'id');
+    }
 }
