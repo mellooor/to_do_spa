@@ -14,31 +14,35 @@ class GetToDoItemTest extends TestCase
     {
         parent::setUp();
         $this->user = factory(User::class)->create();
-        factory(ToDoItem::class, 15)->create(['user_id' => $this->user->id]); // Incomplete to do items
-        factory(ToDoItem::class, 15)->create(['user_id' => $this->user->id, 'completed' => 1]); // Completed to do items
+        factory(ToDoItem::class, 15)->create(['owner_id' => $this->user->id]); // Incomplete to do items
+        factory(ToDoItem::class, 15)->create(['owner_id' => $this->user->id, 'completed' => 1]); // Completed to do items
     }
 
+    /** @test */
     public function userCanGetTheirToDoItems() : void
     {
         // All To Do Items
-        $this->actingAs($this->user)
+        $response = $this->actingAs($this->user)
             ->getJson('/to-do-items')
             ->assertSuccessful()
-            ->assertJsonCount(30)
-            ->assertJsonFragment(['next_page_url' => $this->apiURL . '?page=2']); // Check to see if pagination links are present
+            ->assertJsonCount(30);
+
+        $this->assertNotNull($response->getData()->links->next); // Check to see if pagination links are present
 
         // Incomplete To Do Items
-        $this->actingAs($this->user)
+        $response = $this->actingAs($this->user)
             ->getJson('/to-do-items/incomplete')
             ->assertSuccessful()
-            ->assertJsonCount(15)
-            ->assertJsonFragment(['next_page_url' => $this->apiURL . '?page=2']);
+            ->assertJsonCount(15);
+
+        $this->assertNotNull($response->getData()->links->next); // Check to see if pagination links are present
 
         // Completed To Do Items
-        $this->actingAs($this->user)
+        $response = $this->actingAs($this->user)
             ->getJson('/to-do-items/completed')
             ->assertSuccessful()
-            ->assertJsonCount(15)
-            ->assertJsonFragment(['next_page_url' => $this->apiURL . '?page=2']);
+            ->assertJsonCount(15);
+
+        $this->assertNotNull($response->getData()->links->next); // Check to see if pagination links are present
     }
 }

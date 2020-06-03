@@ -16,11 +16,7 @@ class CreateToDoItemTest extends TestCase
         $this->user = factory(User::class)->create();
     }
 
-    /**
-     * A basic feature test example.
-     *
-     * @return void
-     */
+    /** @test */
     public function registeredUserCanCreateToDoItem()
     {
         $this->actingAs($this->user)
@@ -50,6 +46,7 @@ class CreateToDoItemTest extends TestCase
         $this->assertLessThanOrEqual(1, $timeDiffInMinutes);
     }
 
+    /** @test */
     public function unregisteredUserCannotCreateToDoItem() {
         $this->postJson('/to-do-item', [
                 'body' => 'This is an example of an item that I need to do.',

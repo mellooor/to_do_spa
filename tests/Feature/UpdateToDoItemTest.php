@@ -15,9 +15,10 @@ class UpdateToDoItemTest extends TestCase
         parent::setUp();
         $this->user = factory(User::class)->create();
         $this->otherUser = factory(User::class)->create();
-        $this->toDoItem = factory(ToDoItem::class)->create(['user_id' => $this->user->id]);
+        $this->toDoItem = factory(ToDoItem::class)->create(['owner_id' => $this->user->id]);
     }
 
+    /** @test */
     public function userCanPatchTheirToDoItem() : void
     {
         $this->actingAs($this->user)
@@ -48,6 +49,7 @@ class UpdateToDoItemTest extends TestCase
         $this->assertLessThanOrEqual(1, $timeDiffInMinutes);
     }
 
+    /** @test */
     public function userCannotPatchOtherUserToDoItem() : void
     {
         $this->actingAs($this->otherUser)
