@@ -24,25 +24,25 @@ class GetToDoItemTest extends TestCase
         // All To Do Items
         $response = $this->actingAs($this->user)
             ->getJson('/to-do-items')
-            ->assertSuccessful()
-            ->assertJsonCount(30);
+            ->assertSuccessful();
 
+        $this->assertEquals(30, $response->getData()->meta->total); // Check to see that the correct number of to do items have been retrieved.
         $this->assertNotNull($response->getData()->links->next); // Check to see if pagination links are present
 
         // Incomplete To Do Items
         $response = $this->actingAs($this->user)
             ->getJson('/to-do-items/incomplete')
-            ->assertSuccessful()
-            ->assertJsonCount(15);
+            ->assertSuccessful();
 
+        $this->assertEquals(15, $response->getData()->meta->total); // Check to see that the correct number of to do items have been retrieved.
         $this->assertNotNull($response->getData()->links->next); // Check to see if pagination links are present
 
         // Completed To Do Items
         $response = $this->actingAs($this->user)
             ->getJson('/to-do-items/completed')
-            ->assertSuccessful()
-            ->assertJsonCount(15);
+            ->assertSuccessful();
 
+        $this->assertEquals(15, $response->getData()->meta->total); // Check to see that the correct number of to do items have been retrieved.
         $this->assertNotNull($response->getData()->links->next); // Check to see if pagination links are present
     }
 }
