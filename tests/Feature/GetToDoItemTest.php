@@ -45,4 +45,23 @@ class GetToDoItemTest extends TestCase
         $this->assertEquals(15, $response->getData()->meta->total); // Check to see that the correct number of to do items have been retrieved.
         $this->assertNotNull($response->getData()->links->next); // Check to see if pagination links are present
     }
+
+    /** @test */
+    public function unregisteredUserCannotRetrieveToDoItems() {
+        $this->getJson('/to-do-items')
+            ->assertJson([
+                'message' => 'Unauthenticated.'
+            ])
+            ->assertStatus(401);
+    }
+
+    /** @test */
+    public function incorrectQueryParameterReturnsError() {
+        $this->actingAs($this->user)
+            ->getJson('/to-do-items/abcdefg')
+            ->assertJson([
+                'error' => 'Incorrect parameters supplied.'
+            ])
+            ->assertStatus(400);
+    }
 }

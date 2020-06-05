@@ -59,4 +59,35 @@ class UpdateToDoItemTest extends TestCase
             ])
             ->assertStatus(401);
     }
+
+    /** @test */
+    public function userCannotPatchToBlankToDoItem() {
+        $this->actingAs($this->user)
+            ->patchJson('/to-do-item/' . $this->toDoItem->id, [
+                'body' => '',
+            ])
+            ->assertStatus(422);
+
+        $this->assertDatabaseHas('users', [
+            'id' => 1,
+            'owner_id' => $this->user->id,
+            'body' => 'This is an example of an item that I need to do.',
+            'completed' => 1,
+        ]);
+
+        // Assert that the edited_at timestamp doesn't fall within the last minute.
+        $currentTime = new Carbon();
+        $timeDiffInMinutes = $currentTime->diffInMinutes(Carbon::createFromTimestamp(ToDoItem::find(1)->edited_at));
+        $this->assertGreaterThan(1, $timeDiffInMinutes);
+    }
+
+    /** @test */
+    public function incorrectQueryParameterReturnsError() {
+        $this->actingAs($this->user)
+            ->patchJson('/to-do-item/abcdefg')
+            ->assertJson([
+                'error' => 'Incorrect parameters supplied.'
+            ])
+            ->assertStatus(400);
+    }
 }

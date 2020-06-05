@@ -47,4 +47,14 @@ class DeleteToDoItemTest extends TestCase
             'email' => 'test@test.app',
         ]);
     }
+
+    /** @test */
+    public function incorrectQueryParameterReturnsError() {
+        $this->actingAs($this->user)
+            ->deleteJson('/to-do-item/abcdefg')
+            ->assertJson([
+                'error' => 'Incorrect parameters supplied.'
+            ])
+            ->assertStatus(400);
+    }
 }

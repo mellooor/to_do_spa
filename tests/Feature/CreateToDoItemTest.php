@@ -48,9 +48,28 @@ class CreateToDoItemTest extends TestCase
     }
 
     /** @test */
+    public function registeredUserCannotCreateBlankToDoItem() {
+        $this->actingAs($this->user)
+            ->postJson('/to-do-item', [
+                'body' => '',
+            ])
+            ->assertStatus(422);
+
+        $this->assertDatabaseMissing('users', [
+            'id' => 2,
+            'owner_id' => $this->user->id,
+            'body' => '',
+            'email' => 'test@test.app',
+        ]);
+    }
+
+    /** @test */
     public function unregisteredUserCannotCreateToDoItem() {
         $this->postJson('/to-do-item', [
                 'body' => 'This is an example of an item that I need to do.',
+            ])
+            ->assertJson([
+                'message' => 'Unauthenticated.'
             ])
             ->assertStatus(401);
     }
