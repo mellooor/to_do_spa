@@ -6,6 +6,7 @@ use App\ToDoItem;
 use App\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class UpdateToDoItemTest extends TestCase
@@ -28,12 +29,14 @@ class UpdateToDoItemTest extends TestCase
             ])
             ->assertSuccessful()
             ->assertJsonStructure([
-                'id',
-                'owner_id',
-                'body',
-                'created_at',
-                'updated_at',
-                'completed'
+                'data' => [
+                    'id',
+                    'owner',
+                    'body',
+                    'created_at',
+                    'updated_at',
+                    'completed'
+                ]
             ]);
 
         $this->assertDatabaseHas('to_do_items', [
@@ -45,7 +48,7 @@ class UpdateToDoItemTest extends TestCase
 
         // Assert that the edited_at timestamp falls within the last minute.
         $currentTime = new Carbon();
-        $timeDiffInMinutes = $currentTime->diffInMinutes(Carbon::createFromTimestamp(ToDoItem::find(1)->edited_at));
+        $timeDiffInMinutes = $currentTime->diffInMinutes(ToDoItem::find(1)->edited_at->format("Y-m-d H:i:s"));
         $this->assertLessThanOrEqual(1, $timeDiffInMinutes);
     }
 
@@ -68,16 +71,16 @@ class UpdateToDoItemTest extends TestCase
             ])
             ->assertStatus(422);
 
-        $this->assertDatabaseHas('users', [
+        $this->assertDatabaseHas('to_do_items', [
             'id' => 1,
             'owner_id' => $this->user->id,
             'body' => 'This is an example of an item that I need to do.',
-            'completed' => 1,
+            'completed' => 0,
         ]);
 
         // Assert that the edited_at timestamp doesn't fall within the last minute.
         $currentTime = new Carbon();
-        $timeDiffInMinutes = $currentTime->diffInMinutes(Carbon::createFromTimestamp(ToDoItem::find(1)->edited_at));
+        $timeDiffInMinutes = $currentTime->diffInMinutes(ToDoItem::find(1)->edited_at->format("Y-m-d H:i:s"));
         $this->assertGreaterThan(1, $timeDiffInMinutes);
     }
 

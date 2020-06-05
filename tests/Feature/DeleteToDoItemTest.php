@@ -25,11 +25,11 @@ class DeleteToDoItemTest extends TestCase
             ->deleteJson('/to-do-item/' . $this->toDoItem->id)
             ->assertSuccessful();
 
-        $this->assertDatabaseMissing('users', [
+        $this->assertDatabaseMissing('to_do_items', [
             'id' => 1,
             'owner_id' => $this->user->id,
             'body' => 'This is an example of an item that I need to do.',
-            'email' => 'test@test.app',
+            'completed' => 0,
         ]);
     }
 
@@ -40,11 +40,11 @@ class DeleteToDoItemTest extends TestCase
             ->deleteJson('/to-do-item/' . $this->toDoItem->id)
             ->assertStatus(401);
 
-        $this->assertDatabaseHas('users', [
+        $this->assertDatabaseHas('to_do_items', [
             'id' => 1,
             'owner_id' => $this->user->id,
             'body' => 'This is an example of an item that I need to do.',
-            'email' => 'test@test.app',
+            'completed' => 0,
         ]);
     }
 

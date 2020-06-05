@@ -26,24 +26,26 @@ class CreateToDoItemTest extends TestCase
             ])
             ->assertSuccessful()
             ->assertJsonStructure([
-                'id',
-                'owner_id',
-                'body',
-                'created_at',
-                'updated_at',
-                'completed'
+                'data' => [
+                    'id',
+                    'owner',
+                    'body',
+                    'created_at',
+                    'updated_at',
+                    'completed'
+                ]
             ]);
 
-        $this->assertDatabaseHas('users', [
+        $this->assertDatabaseHas('to_do_items', [
             'id' => 1,
             'owner_id' => $this->user->id,
             'body' => 'This is an example of an item that I need to do.',
-            'email' => 'test@test.app',
+            'completed' => 0,
         ]);
 
         // Assert that the created_at timestamp falls within the last minute.
         $currentTime = new Carbon();
-        $timeDiffInMinutes = $currentTime->diffInMinutes(Carbon::createFromTimestamp(ToDoItem::find(1)->created_at));
+        $timeDiffInMinutes = $currentTime->diffInMinutes(ToDoItem::find(1)->created_at->format('Y-m-d H:i:s'));
         $this->assertLessThanOrEqual(1, $timeDiffInMinutes);
     }
 
@@ -55,7 +57,7 @@ class CreateToDoItemTest extends TestCase
             ])
             ->assertStatus(422);
 
-        $this->assertDatabaseMissing('users', [
+        $this->assertDatabaseMissing('to_do_items', [
             'id' => 2,
             'owner_id' => $this->user->id,
             'body' => '',
@@ -66,8 +68,8 @@ class CreateToDoItemTest extends TestCase
     /** @test */
     public function unregisteredUserCannotCreateToDoItem() {
         $this->postJson('/to-do-item', [
-                'body' => 'This is an example of an item that I need to do.',
-            ])
+            'body' => 'This is an example of an item that I need to do.',
+        ])
             ->assertJson([
                 'message' => 'Unauthenticated.'
             ])
