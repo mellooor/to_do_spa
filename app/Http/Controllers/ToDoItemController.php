@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\ToDoItem;
 use Illuminate\Http\Request;
+use App\Http\Resources\ToDoItem as ToDoItemResource;
 
 class ToDoItemController extends Controller
 {
@@ -12,19 +13,22 @@ class ToDoItemController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(string $status = "")
     {
-        //
-    }
+        $user = auth('api')->user();
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+        if ($status === "incomplete" || $status === "completed") {
+            $isCompleted = ($status === "incomplete") ? 0 : 1;
+            $toDoItems = $user->toDoItems()->where('completed', $isCompleted);
+        } else if ($status === "") {
+            $toDoItems = $user->toDoItems();
+        } else {
+            return response()->json([
+                'error' => 'Incorrect parameters supplied.'
+            ], 400);
+        }
+
+        return ToDoItemResource::collection($toDoItems->paginate(10));
     }
 
     /**
@@ -35,29 +39,18 @@ class ToDoItemController extends Controller
      */
     public function store(Request $request)
     {
-        //
-    }
+        $user = auth('api')->user();
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\ToDoItem  $toDoItem
-     * @return \Illuminate\Http\Response
-     */
-    public function show(ToDoItem $toDoItem)
-    {
-        //
-    }
+        $request->validate([
+            'body' => 'required|string|max:191'
+        ]);
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\ToDoItem  $toDoItem
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(ToDoItem $toDoItem)
-    {
-        //
+        $toDoItem = new ToDoItem();
+        $toDoItem->owner_id = $user->id;
+        $toDoItem->body = $request->input('body');
+        $toDoItem->save();
+
+        return new ToDoItemResource($toDoItem);
     }
 
     /**
@@ -69,7 +62,30 @@ class ToDoItemController extends Controller
      */
     public function update(Request $request, ToDoItem $toDoItem)
     {
-        //
+        $user = auth('api')->user();
+
+        // If the author of the to do item is the current user, update it.
+        if ($toDoItem->owner_id === $user->id) {
+            $request->validate([
+                'body' => 'required_without:completed|string|max:191',
+                'completed' => 'required_without:body|in:true,false,1,0'
+            ]);
+
+            // Cast the string value to a PHP boolean data type.
+            $completed = ($request->input('completed') === 'true' || $request->input('completed') === '1') ? true : false;
+
+            if (($request->has('body'))) { $toDoItem->body = $request->input('body'); }
+            if (($request->has('completed'))) { $toDoItem->completed = $completed; }
+
+            $toDoItem->updated_at = now();
+            $toDoItem->save();
+
+            return new ToDoItemResource($toDoItem);
+        } else {
+            return response()->json([
+                'error' => 'You are not authorised to update this post.'
+            ], 401);
+        }
     }
 
     /**
@@ -80,6 +96,18 @@ class ToDoItemController extends Controller
      */
     public function destroy(ToDoItem $toDoItem)
     {
-        //
+        $user = auth('api')->user();
+
+        // If the author of the to do item is the current user, delete it.
+        if ($toDoItem->owner_id === $user->id) {
+            $toDoItem->delete();
+            return response()->json([
+               'success' => 'To do item has been deleted.'
+            ], 200);
+        } else {
+            return response()->json([
+               'error' => 'You are not authorised to delete this post.'
+            ], 401);
+        }
     }
 }

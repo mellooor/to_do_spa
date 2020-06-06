@@ -22,6 +22,11 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::patch('settings/profile', 'Settings\ProfileController@update');
     Route::patch('settings/password', 'Settings\PasswordController@update');
+
+    Route::get('/to-do-items/{status?}', 'ToDoItemController@index');
+    Route::post('/to-do-item', 'ToDoItemController@store');
+    Route::delete('/to-do-item/{toDoItem}', 'ToDoItemController@destroy');
+    Route::patch('/to-do-item/{toDoItem}', 'ToDoItemController@update');
 });
 
 Route::group(['middleware' => 'guest:api'], function () {
