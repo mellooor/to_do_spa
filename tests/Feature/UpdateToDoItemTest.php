@@ -22,10 +22,14 @@ class UpdateToDoItemTest extends TestCase
     /** @test */
     public function userCanPatchTheirToDoItem() : void
     {
+        $oldUpdatedAtTimestamp = ToDoItem::find(1)->updated_at->timestamp;
+        $oneMinuteLater = Carbon::now()->add(1, 'minute');
+        Carbon::setTestNow($oneMinuteLater);
+
         $this->actingAs($this->user)
             ->patchJson('/to-do-item/' . $this->toDoItem->id, [
                 'body' => 'This was an example of an item that I need to do.',
-                'completed' => 1
+                'completed' => 'true'
             ])
             ->assertSuccessful()
             ->assertJsonStructure([
@@ -46,11 +50,78 @@ class UpdateToDoItemTest extends TestCase
             'completed' => 1,
         ]);
 
-        // Assert that the edited_at timestamp falls within the last minute.
-        $currentTime = new Carbon();
-        $timeDiffInMinutes = $currentTime->diffInMinutes(ToDoItem::find(1)->edited_at->format("Y-m-d H:i:s"));
-        $this->assertLessThanOrEqual(1, $timeDiffInMinutes);
+        // Assert that the edited_at timestamp has been updated.
+        $this->assertNotEquals($oldUpdatedAtTimestamp, ToDoItem::find(1)->updated_at->timestamp);
     }
+
+    /** @test */
+    public function userCanPatchBodyFieldOnly() : void
+    {
+        $oldUpdatedAtTimestamp = ToDoItem::find(1)->updated_at->timestamp;
+        $oneMinuteLater = Carbon::now()->add(1, 'minute');
+        Carbon::setTestNow($oneMinuteLater);
+
+        $this->actingAs($this->user)
+            ->patchJson('/to-do-item/' . $this->toDoItem->id, [
+                'body' => 'This will be an example of an item that I need to do.',
+            ])
+            ->assertSuccessful()
+            ->assertJsonStructure([
+                'data' => [
+                    'id',
+                    'owner',
+                    'body',
+                    'created_at',
+                    'updated_at',
+                    'completed'
+                ]
+            ]);
+
+        $this->assertDatabaseHas('to_do_items', [
+            'id' => 1,
+            'owner_id' => $this->user->id,
+            'body' => 'This will be an example of an item that I need to do.',
+            'completed' => 0,
+        ]);
+
+        // Assert that the edited_at timestamp has been updated.
+        $this->assertNotEquals($oldUpdatedAtTimestamp, ToDoItem::find(1)->updated_at->timestamp);
+    }
+
+    /** @test */
+    public function userCanPatchCompletedFieldOnly() : void
+    {
+        $oldTimestamp = ToDoItem::find(1)->updated_at->timestamp;
+        $oneMinuteLater = Carbon::now()->add(1, 'minute');
+        Carbon::setTestNow($oneMinuteLater);
+
+        $this->actingAs($this->user)
+            ->patchJson('/to-do-item/' . $this->toDoItem->id, [
+                'completed' => 'true'
+            ])
+            ->assertSuccessful()
+            ->assertJsonStructure([
+                'data' => [
+                    'id',
+                    'owner',
+                    'body',
+                    'created_at',
+                    'updated_at',
+                    'completed'
+                ]
+            ]);
+
+        $this->assertDatabaseHas('to_do_items', [
+            'id' => 1,
+            'owner_id' => $this->user->id,
+            'body' => 'This is an example of an item that I need to do.',
+            'completed' => 1,
+        ]);
+
+        // Assert that the edited_at timestamp has been updated.
+        $this->assertNotEquals($oldTimestamp, ToDoItem::find(1)->updated_at->timestamp);
+    }
+
 
     /** @test */
     public function userCannotPatchOtherUserToDoItem() : void
@@ -65,6 +136,10 @@ class UpdateToDoItemTest extends TestCase
 
     /** @test */
     public function userCannotPatchToBlankToDoItem() {
+        $oldTimestamp = ToDoItem::find(1)->updated_at->timestamp;
+        $oneMinuteLater = Carbon::now()->add(1, 'minute');
+        Carbon::setTestNow($oneMinuteLater);
+
         $this->actingAs($this->user)
             ->patchJson('/to-do-item/' . $this->toDoItem->id, [
                 'body' => '',
@@ -78,19 +153,7 @@ class UpdateToDoItemTest extends TestCase
             'completed' => 0,
         ]);
 
-        // Assert that the edited_at timestamp doesn't fall within the last minute.
-        $currentTime = new Carbon();
-        $timeDiffInMinutes = $currentTime->diffInMinutes(ToDoItem::find(1)->edited_at->format("Y-m-d H:i:s"));
-        $this->assertGreaterThan(1, $timeDiffInMinutes);
-    }
-
-    /** @test */
-    public function incorrectQueryParameterReturnsError() {
-        $this->actingAs($this->user)
-            ->patchJson('/to-do-item/abcdefg')
-            ->assertJson([
-                'error' => 'Incorrect parameters supplied.'
-            ])
-            ->assertStatus(400);
+        // Assert that the edited_at timestamp has been updated.
+        $this->assertEquals($oldTimestamp, ToDoItem::find(1)->updated_at->timestamp);
     }
 }
