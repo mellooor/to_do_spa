@@ -7,7 +7,7 @@ use Faker\Generator as Faker;
 
 $factory->define(ToDoItem::class, function (Faker $faker) {
     return [
-        'body' => $faker->text(191),
+        'body' => 'This is an example of an item that I need to do.',
         'created_at' => now()
     ];
 });
