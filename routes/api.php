@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
 Route::group(['middleware' => 'auth:api'], function () {
     Route::post('logout', 'Auth\LoginController@logout');
 
-    Route::get('/user', function (Request $request) {
+    Route::get('user', function (Request $request) {
         return $request->user();
     });
 
@@ -24,10 +24,10 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::delete('settings/profile', 'Settings\ProfileController@destroy');
     Route::patch('settings/password', 'Settings\PasswordController@update');
 
-    Route::get('/to-do-items/{status?}', 'ToDoItemController@index');
-    Route::post('/to-do-item', 'ToDoItemController@store');
-    Route::delete('/to-do-item/{toDoItem}', 'ToDoItemController@destroy');
-    Route::patch('/to-do-item/{toDoItem}', 'ToDoItemController@update');
+    Route::get('to-do-items/{status?}', 'ToDoItemController@index');
+    Route::post('to-do-item', 'ToDoItemController@store');
+    Route::delete('to-do-item/{toDoItem}', 'ToDoItemController@destroy');
+    Route::patch('to-do-item/{toDoItem}', 'ToDoItemController@update');
 });
 
 Route::group(['middleware' => 'guest:api'], function () {
