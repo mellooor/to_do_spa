@@ -25,4 +25,21 @@ class ProfileController extends Controller
 
         return tap($user)->update($request->only('first_name', 'last_name', 'email'));
     }
+
+    /**
+     *
+     * Delete the current user's account.
+     *
+     *  @return \Illuminate\Http\Response
+     */
+    public function destroy()
+    {
+        $user = auth('api')->user();
+
+        $user->delete();
+
+        return response()->json([
+            'success' => 'Your profile has been deleted.'
+        ]);
+    }
 }

@@ -21,6 +21,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     });
 
     Route::patch('settings/profile', 'Settings\ProfileController@update');
+    Route::delete('settings/profile', 'Settings\ProfileController@destroy');
     Route::patch('settings/password', 'Settings\PasswordController@update');
 
     Route::get('/to-do-items/{status?}', 'ToDoItemController@index');
